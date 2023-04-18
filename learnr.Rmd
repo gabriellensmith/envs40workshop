@@ -1,0 +1,263 @@
+---
+title: 'Introduction to R: Data Wrangling'
+output: 
+  learnr::tutorial:
+    css: css/style.css
+runtime: shiny_prerendered
+---
+
+```{r setup, include = FALSE}
+library(learnr)
+library(tidyverse)
+library(palmerpenguins)
+data(package = 'palmerpenguins')
+library(shiny)
+library(kableExtra)
+library(fontawesome)
+library(here)
+
+knitr::opts_chunk$set(echo=FALSE)
+```
+
+## 1. Welcome
+
+In this tutorial, we'll walk through some basic examples of using quantitative data in environmental data science! We're going to be working with data using functions from the `dplyr` package, part of the `tidyverse` in *R*.
+
+### What is the tidyverse?
+
+The [tidyverse](https://www.tidyverse.org/) is a collection of packages that contain useful functions for working with data. Remember that a function is like a recipe that tells your computer what to do with your data!
+
+### What is dplyr?
+
+```{r, echo=FALSE, out.width="30%", fig.align = "center"}
+knitr::include_graphics("images/dplyr_hex.png") 
+```
+
+`dplyr` is one package in the tidyverse. This package houses many functions that make it easier to work with data. These functions help us to select specific columns, decide which rows we want to keep, and find summary statistics for different variables and groups. We can refer to these steps as 'data wrangling', or cleaning and organizing our data so that it is easy to use!
+
+```{r echo=FALSE, out.width='100%', fig.align='center', fig.cap = "Illustration from Hadley Wickham's 2019 talk, The Joy of Functional Programming"}
+knitr::include_graphics("images/data_wrangler.png") 
+```
+
+### What's in this tutorial?
+
+In this tutorial, you'll learn and practice examples using some functions in `dplyr` to work with data. Those are:
+
+- `filter()`: keep rows of interest to us
+- `select()`: keep or exclude some columns 
+- `group_by()` + `summarize()`: get summary statistics by group 
+
+### What if I want to learn more?
+
+There is lots to learn about data science, using R, and the tidyverse! If you're curious to learn more, visit https://dplyr.tidyverse.org/ and [R for Data Science](https://r4ds.had.co.nz/)
+
+### Code chunks for activities 
+
+In each section of this tutorial, ther will be examples and practice activities. All of our examples will be completed in code chunks, like the one below. In programming, a code chunk is where we write the instructions for our computer to follow. To see the output of the code, press 'Run'!
+
+```{r calculator, exercise = TRUE}
+0.2 + 0.3
+```
+
+When you press 'Run', the **output** of the code is returned below the code chunk. 
+
+Feel free to change some of the numbers in the basic calculation above. Notice that when you change the numbers in your code chunk and press 'Run', the output below will change!
+
+### Thank you to:
+
+#### `dplyr` creators & contributors! 
+
+Hadley Wickham, Romain François, Lionel Henry and Kirill Müller (2020). dplyr: A Grammar of Data Manipulation. R package version 1.0.2. https://CRAN.R-project.org/package=dplyr
+
+#### `tidyverse` creators & contributors! 
+
+Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686, https://doi.org/10.21105/joss.01686
+
+#### `palmerpenguins` package coauthors 
+
+Thanks palmerpenguins team, Dr. Alison Hill & Dr. Kristen B. Gorman!
+
+Horst AM, Hill AP, Gorman KB (2020). palmerpenguins: Palmer Archipelago (Antarctica) penguin data. R package version 0.1.0. https://allisonhorst.github.io/palmerpenguins/
+
+## 2. Meet the data 
+
+We're going to practice some data wrangling in `dplyr` using data for penguin sizes recorded by Dr. Kristen Gorman and colleagues with the [Palmer Station Long Term Ecological Research site (Palmer LTER)](https://pal.lternet.edu/) at several islands in the Palmer Archipelago, Antarctica. Data are originally published in: Gorman KB, Williams TD, Fraser WR (2014) PLoS ONE 9(3): e90081. doi:10.1371/journal.pone.0090081, and made available through the Environmental Data Initiative (see data citation details [here](https://allisonhorst.github.io/palmerpenguins/index.html)).
+
+In this tutorial, the data are already loaded and waiting for you behind the scenes, so we can work with our `penguins` data without explicitly loading it.
+
+### About our penguins:
+
+The 3 species of penguins in this data set are Adelie, Chinstrap, and Gentoo. Here they are!
+
+```{r, echo=FALSE, out.width="100%", fig.align = "center"}
+knitr::include_graphics("images/lter_penguins.png")
+```
+
+There are 8 variables included in our `penguins` data. A variable is like a container that holds specific information about our penguins. The variables we have are:
+
+- **species:** a factor denoting the penguin species (Adelie, Chinstrap, or Gentoo)
+- **island:** a factor denoting the island (in Palmer Archipelago, Antarctica) where observed
+- **bill_length_mm:** a number denoting length of the dorsal ridge of penguin bill (millimeters)
+- **bill_depth_mm:** a number denoting the depth of the penguin bill (millimeters)
+- **flipper_length_mm:** an integer denoting penguin flipper length (millimeters)
+- **body_mass_g:** an integer denoting penguin body mass (grams)
+- **sex:** a factor denoting penguin sex (male, female)
+- **year:** an integer denoting the study year (2007, 2008, or 2009)
+
+### What do the data look like?
+
+Below is a look at the first 10 lines of penguin data. `NA` means that the data contains a missing value. 
+
+```{r, echo = FALSE}
+penguins |> 
+  head(10) |> 
+  knitr::kable() |> 
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+Now, let's use our first function!
+
+## 3. dplyr::filter()
+
+`filter()` is a function in the tidyverse that lets us create a subset, or a smaller group out of the full group, of the data that only contain rows we want. 
+
+In the image we see below, the data must meet two conditions for a row (or observation) to be preserved. The variable *type* needs to match 'otter', and the variable *site* needs to match 'bay'. 
+
+```{r, echo=FALSE, out.width="80%", fig.align = "center"}
+knitr::include_graphics("images/dplyr_filter_sm.png")
+```
+
+Let's try it out!
+
+### Filter Examples
+
+#### `r fa("fas fa-robot", fill = "purple")` Example 1
+
+Say we want to only look at data for Chinstrap penguins. We can use the `filter()` function with our *penguins* data to only keep rows where the entry for the variable *species* exactly matches "Chinstrap" (case sensitive). 
+
+```{r, echo = TRUE, message = FALSE, warning = FALSE}
+dplyr::filter(penguins, species == "Chinstrap")
+```
+
+Now you try! Change the text within the quotation marks to whatever penguin species you want to see data for (either Adelie or Gentoo), and click 'Run'! Remember that these names are case sensitive, and must exactly match their entry in the data for this code to work how we want it to!
+
+```{r filter, echo = TRUE, message = FALSE, warning = FALSE, exercise = TRUE}
+dplyr::filter(penguins, species == "Chinstrap")
+```
+
+#### `r fa("fas fa-robot", fill = "purple")` Example 2
+
+Now say we only want to look at data for penguins that have a flipper length greater than 200 mm. We can use logical operators (`==`, `<=`, `>=`, `<`, `>`) and the `filter()` function with our *penguins* data to only keep rows where the entry for the variable *flipper_length_mm* is greater than 200.
+
+```{r, echo = TRUE, message = FALSE, warning = FALSE}
+dplyr::filter(penguins, flipper_length_mm > 200)
+```
+
+Your turn again! This time, let's look at data for penguins with a bill length greater than 50 mm. To adjust the code above, you'll need to change the *flipper_length_mm* variable to the *bill_length_mm* variable, and change the number *200* to *50*. Then, click 'Run'!
+
+```{r filter2, echo = TRUE, message = FALSE, warning = FALSE, exercise = TRUE}
+dplyr::filter(penguins, flipper_length_mm > 200)
+```
+
+## 4. dplyr::select()
+
+`select()` is a function in the tidyverse that lets us select which **columns** of our data that we want to keep or exclude.
+
+### Select examples 
+
+#### `r fa("fas fa-robot", fill = "purple")` Example 1
+
+Say we are only interested in looking at the variables *year*, *species*, and *island* in our penguins data. We can use the *select()* function to keep only these variables in our ouput.
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+penguins |> 
+  select(year, island, species)
+```
+
+Now you choose some variables to look at, and write them into the code chunk below! A reminder that the variables in the penguins data are (*species*, *island*, *bill_length_mm*, *bill_depth_mm*, *flipper_length_mm*, *body_mass_g*, *sex*, *year*). You can pick as many or as few as you'd like, but make sure that every variable you choose is separated by a comma (`,`) in your code chunk. Then, click 'Run'!
+
+```{r select, echo = TRUE, warning = FALSE, message = FALSE, exercise = TRUE}
+penguins |> 
+  select(year, island, species)
+```
+
+### Excluding Columns 
+
+We can also use the `select()` function to exclude variables from our data. We use the minus sign (`-`) in front of a variable name to exclude it.
+
+#### `r fa("fas fa-robot", fill = "purple")` Example 2
+
+Say we want to look at all of the variables in our penguin data besides *sex*. We can use the `select()` function to exclude only this variable from our output.
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+penguins |> 
+  select(-sex)
+```
+
+Feel free to try excluding a different variable by changing *sex* to another variable name in the code chunk below! Make sure to click 'Run' when you are finished to see the new output!
+
+```{r select2, echo = TRUE, warning = FALSE, message = FALSE, exercise = TRUE}
+penguins |> 
+  select(-sex)
+```
+
+## 5. dplyr::group_by() |> summarize()
+
+`group_by()` and `summarize()` are functions that work together to give us summary staistics for different groups and put them into a nice table.
+
+`group_by()` lets us specificy groups within our data, and `summarize()` will calculate some sort of summary statistic (like the mean) for our specified group.
+
+### Group_by + summarize examples 
+
+#### `r fa("fas fa-robot", fill = "purple")` Example 1
+
+Say we want to see the mean (average) penguin body mass, grouped by penguin species. We can use the `group_by()` function to group our data by *species*, and the `summarize()` function to give us a table with the average body mass value for each of our species groups. Note that the `na.rm = TRUE` argument is added to exclude our missing values from these summary statistics.
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+penguins |> 
+  group_by(species) |> 
+  summarize(mass_mean = mean(body_mass_g,
+                             na.rm = TRUE))
+```
+
+Here is what the results of our summary table would look like if we put them into a bar chart:
+
+```{r}
+penguin_mass <- penguins |> 
+  group_by(species) |> 
+  summarize(mass_mean = mean(body_mass_g,
+                             na.rm = TRUE)) 
+
+# Create a barplot with species on the x-axis and mass_mean on the y-axis
+ggplot2::ggplot(penguin_mass, aes(x = species, y = mass_mean, fill = species)) +
+  # Add bars to the plot
+  geom_bar(stat = "identity") +
+  # Customize the x-axis labels and title
+  xlab("Species") +
+  scale_x_discrete(labels = c("Adelie", "Chinstrap", "Gentoo")) +
+  # Customize the y-axis labels and title
+  ylab("Mean Body Mass (g)") +
+  ggtitle("Mean Body Mass by Penguin Species") +
+  # Customize the legend title and position
+  labs(fill = "Species") +
+  theme(legend.position = "bottom") +
+  theme_minimal()
+```
+
+```{r groupby, echo = TRUE, warning = FALSE, message = FALSE, exercise = TRUE}
+penguins |> 
+  group_by(species) |> 
+  summarize(mass_mean = mean(body_mass_g,
+                             na.rm = TRUE))
+```
+
+Let's change it up! Adjust the code chunk above to see the mean (average) penguin flipper length, grouped by species. To do this, we need to change the variable *body_mass_g* to the variable *flipper_length_mm*. We will also want to change the name of our output variable. Right now, our `summarize()` function returns a table with a *species* and *mass_mean* variable. Let's change *mass_mean* to *flipper_length_mean*. Then, click 'Run'!
+
+## 6. Resources
+
+Great job! You've just done some data wrangling! Data wrangling is an essential step in the data science process. It helps us to improve the usability of our data so that we can answer our data science questions!
+
+If you want to learn more about `dplyr`, the `tidyverse`, or coding in R in general, check out some of these resources:
+
+- [R for Data Science](https://r4ds.had.co.nz/) by Hadley Wickham and Garrett Grolemund
+- [dplyr.tidyverse.org](https://dplyr.tidyverse.org/)
