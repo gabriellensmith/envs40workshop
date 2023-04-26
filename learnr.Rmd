@@ -93,7 +93,9 @@ The 3 species of penguins in this data set are Adelie, Chinstrap, and Gentoo. He
 knitr::include_graphics("images/lter_penguins.png")
 ```
 
-There are 8 variables included in our `penguins` data. A variable is like a container that holds specific information about our penguins. The variables we have are:
+There are 8 variables included in our `penguins` data. A variable is like a container that holds specific information about our penguins. 
+
+The variable types we see in our data are numbers, integers, and factors. Integers are whole numbers that do not have any decimal places. A factor is a categorical variable that can take on only a limited number of values or levels (for instance, there are three factor levels for primary colors - red, green, and blue). The variables we have in our penguins data are:
 
 - **species:** a factor denoting the penguin species (Adelie, Chinstrap, or Gentoo)
 - **island:** a factor denoting the island (in Palmer Archipelago, Antarctica) where observed
@@ -255,9 +257,23 @@ Let's change it up! Adjust the code chunk above to see the mean (average) pengui
 
 ## 6. Resources
 
+### Hooray!
+
 Great job! You've just done some data wrangling! Data wrangling is an essential step in the data science process. It helps us to improve the usability of our data so that we can answer our data science questions!
+
+### Time to Reflect
+
+For your lecture participation (4.8) today, please write a short reflection about how data science might be useful to you in your environmental career! Don't forget to hit 'Submit' on Canvas! 
+
+### More Resources 
+
+Check out the [Data Analysis and Coding (DAnC) club](https://ucsbdanc.weebly.com/) at UCSB, featuring workshops, guest speakers, networking opportunities, and career advice! 
+
+DAnC is working to establish an inclusive community of beginning coders to develop professional skills for data science & beyond!
 
 If you want to learn more about `dplyr`, the `tidyverse`, or coding in R in general, check out some of these resources:
 
 - [R for Data Science](https://r4ds.had.co.nz/) by Hadley Wickham and Garrett Grolemund
 - [dplyr.tidyverse.org](https://dplyr.tidyverse.org/)
+
+Or, come talk to me! Reach me through my email gabriellesmith@ucsb.edu if you want to chat all things data science! 
